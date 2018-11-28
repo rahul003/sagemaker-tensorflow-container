@@ -35,8 +35,7 @@ class ScriptModeTensorFlow(Framework):
     def __init__(self, py_version='py3', **kwargs):
         super(ScriptModeTensorFlow, self).__init__(**kwargs)
         self.py_version = py_version
-        self.image_name = None
-        self.framework_version = '1.10.0'
+        self.framework_version = '1.12.0'
 
 
 def get_args():
@@ -44,12 +43,12 @@ def get_args():
     parser.add_argument('-t', '--instance-types', nargs='+', help='<Required> Set flag', required=True)
     parser.add_argument('-r', '--role', required=True)
     parser.add_argument('-w', '--wait', action='store_true')
-    parser.add_argument('--region', default='us-west-2')
+    parser.add_argument('--region', default='us-east-1')
     parser.add_argument('--py-versions', nargs='+', help='<Required> Set flag', default=['py3'])
     parser.add_argument('--checkpoint-path',
-                        default=os.path.join(default_bucket(), 'benchmarks', 'checkpoints'),
+                        default=os.path.join('huilgolr-tf-sm', 'benchmarks', 'checkpoints'),
                         help='The S3 location where the model checkpoints and tensorboard events are saved after training')
-
+    parser.add_argument('--image', default=None)
     return parser.parse_known_args()
 
 
@@ -65,12 +64,13 @@ def main(args, script_args):
 
         estimator = ScriptModeTensorFlow(
             entry_point='tf_cnn_benchmarks.py',
-            role='SageMakerRole',
+            role=args.role,
             source_dir=os.path.join(dir_path, 'tf_cnn_benchmarks'),
             base_job_name=base_name,
             train_instance_count=1,
             hyperparameters=job_hps,
             train_instance_type=instance_type,
+  	    image_name=args.image
         )
 
         input_dir = 's3://sagemaker-sample-data-%s/spark/mnist/train/' % args.region
